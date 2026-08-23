@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function ConnexionPage() {
@@ -34,6 +33,7 @@ export default function ConnexionPage() {
       }
     }
 
+    const { signIn } = await import("next-auth/react");
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) {
       setError("Email ou mot de passe incorrect.");
