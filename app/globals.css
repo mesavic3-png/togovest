@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{color:#10281f;background:#fbfaf6}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:var(--font-body),sans-serif;background:#fbfaf6;color:#10281f}h1,h2,h3{font-family:var(--font-display),sans-serif}::selection{background:#d8f05e;color:#10281f}
+@layer components{.shell{@apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10}.eyebrow{@apply text-xs font-bold uppercase tracking-[.22em] text-forest/70}}
