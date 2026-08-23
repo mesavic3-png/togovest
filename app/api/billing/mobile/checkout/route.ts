@@ -16,12 +16,14 @@ export async function POST(request: Request) {
 
   let amount = 0;
   let type: "SUBSCRIPTION" | "BOOST" | "FEATURED";
+  let purchasedPlan: "PRO" | "AGENCY" | undefined;
   let description = "Paiement TOGOVEST";
   const metadata: Record<string, string> = { userId: user.id };
 
   if (body.plan && body.plan !== "FREE") {
     amount = plans[body.plan].priceXof;
     type = "SUBSCRIPTION";
+    purchasedPlan = body.plan;
     description = `Abonnement TOGOVEST ${plans[body.plan].name} - 30 jours`;
     metadata.plan = body.plan;
   } else if (body.propertyId && body.product && oneOffProducts[body.product]) {
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
   await prisma.payment.create({
     data: {
       type,
+      plan: purchasedPlan,
       status: "PENDING",
       amount,
       currency: "XOF",
