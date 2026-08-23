@@ -5,7 +5,7 @@ export const propertySchema = z.object({
   description: z.string().min(20, "La description doit contenir au moins 20 caractères."),
   type: z.enum(["HOUSE", "APARTMENT", "LAND", "VILLA", "OFFICE", "SHOP", "WAREHOUSE", "OTHER"]),
   transactionType: z.enum(["SALE", "RENT", "SHORT_TERM"]),
-  price: z.coerce.number().positive("Le prix doit être supérieur à 0."),
+  price: z.coerce.number().positive("Le prix doit être supérieur à 0.").optional(),
   nightlyPrice: z.coerce.number().positive().optional(),
   weeklyPrice: z.coerce.number().positive().optional(),
   monthlyPrice: z.coerce.number().positive().optional(),
@@ -30,6 +30,8 @@ export const propertySchema = z.object({
     if (!data.nightlyPrice) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["nightlyPrice"], message: "Le prix par nuit est requis." });
     if (!data.maxGuests) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["maxGuests"], message: "Le nombre maximum de voyageurs est requis." });
     if (!data.minNights) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["minNights"], message: "Le nombre minimum de nuits est requis." });
+  } else if (!data.price) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["price"], message: "Le prix est requis." });
   }
 });
 
