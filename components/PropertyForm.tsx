@@ -5,12 +5,15 @@ import { CheckCircle2, ImagePlus, Loader2, X } from "lucide-react";
 
 const inputClass = "w-full rounded-2xl border border-ink/15 bg-white px-4 py-3.5 outline-none transition focus:border-forest";
 
+type TransactionType = "SALE" | "RENT" | "SHORT_TERM";
+
 export function PropertyForm() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [transactionType, setTransactionType] = useState<TransactionType>("SALE");
 
   async function uploadFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []).slice(0, Math.max(0, 12 - imageUrls.length));
@@ -47,12 +50,22 @@ export function PropertyForm() {
     setSuccess(false);
 
     const form = new FormData(event.currentTarget);
+    const isShortTerm = transactionType === "SHORT_TERM";
     const payload = {
       title: form.get("title"),
       description: form.get("description"),
       type: form.get("type"),
-      transactionType: form.get("transactionType"),
-      price: Number(form.get("price")),
+      transactionType,
+      price: !isShortTerm && form.get("price") ? Number(form.get("price")) : undefined,
+      nightlyPrice: isShortTerm && form.get("nightlyPrice") ? Number(form.get("nightlyPrice")) : undefined,
+      weeklyPrice: isShortTerm && form.get("weeklyPrice") ? Number(form.get("weeklyPrice")) : undefined,
+      monthlyPrice: isShortTerm && form.get("monthlyPrice") ? Number(form.get("monthlyPrice")) : undefined,
+      cleaningFee: isShortTerm && form.get("cleaningFee") ? Number(form.get("cleaningFee")) : undefined,
+      securityDeposit: isShortTerm && form.get("securityDeposit") ? Number(form.get("securityDeposit")) : undefined,
+      minNights: isShortTerm && form.get("minNights") ? Number(form.get("minNights")) : undefined,
+      maxGuests: isShortTerm && form.get("maxGuests") ? Number(form.get("maxGuests")) : undefined,
+      checkInTime: isShortTerm ? form.get("checkInTime") : undefined,
+      checkOutTime: isShortTerm ? form.get("checkOutTime") : undefined,
       city: form.get("city"),
       district: form.get("district"),
       address: form.get("address"),
@@ -76,6 +89,7 @@ export function PropertyForm() {
       setSuccess(true);
       setMessage("Annonce enregistrée. Elle est maintenant en attente de validation.");
       event.currentTarget.reset();
+      setTransactionType("SALE");
       setImageUrls([]);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
@@ -88,9 +102,26 @@ export function PropertyForm() {
     <form onSubmit={submit} className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft sm:p-8">
       <div className="grid gap-5 md:grid-cols-2">
         <label className="md:col-span-2"><span className="mb-2 block text-sm font-bold">Titre de l’annonce</span><input name="title" required minLength={5} className={inputClass} placeholder="Villa moderne avec piscine à Agoè" /></label>
-        <label><span className="mb-2 block text-sm font-bold">Transaction</span><select name="transactionType" className={inputClass}><option value="SALE">À vendre</option><option value="RENT">À louer</option></select></label>
+        <label><span className="mb-2 block text-sm font-bold">Transaction</span><select name="transactionType" value={transactionType} onChange={(event) => setTransactionType(event.target.value as TransactionType)} className={inputClass}><option value="SALE">À vendre</option><option value="RENT">Location longue durée</option><option value="SHORT_TERM">Location courte durée</option></select></label>
         <label><span className="mb-2 block text-sm font-bold">Type de bien</span><select name="type" className={inputClass}><option value="HOUSE">Maison</option><option value="VILLA">Villa</option><option value="APARTMENT">Appartement</option><option value="LAND">Terrain</option><option value="OFFICE">Bureau</option><option value="SHOP">Commerce</option><option value="WAREHOUSE">Entrepôt</option><option value="OTHER">Autre</option></select></label>
-        <label><span className="mb-2 block text-sm font-bold">Prix (FCFA)</span><input name="price" type="number" min="1" required className={inputClass} /></label>
+
+        {transactionType !== "SHORT_TERM" ? (
+          <label><span className="mb-2 block text-sm font-bold">Prix (FCFA)</span><input name="price" type="number" min="1" required className={inputClass} /></label>
+        ) : (
+          <>
+            <div className="md:col-span-2 rounded-2xl border border-lime/40 bg-lime/10 p-4"><p className="font-bold text-forest">Informations de location courte durée</p><p className="mt-1 text-sm text-ink/60">Ajoutez les tarifs par séjour, la capacité et les horaires d’arrivée/départ.</p></div>
+            <label><span className="mb-2 block text-sm font-bold">Prix par nuit (FCFA)</span><input name="nightlyPrice" type="number" min="1" required className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Prix par semaine (optionnel)</span><input name="weeklyPrice" type="number" min="1" className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Prix par mois (optionnel)</span><input name="monthlyPrice" type="number" min="1" className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Frais de ménage (FCFA)</span><input name="cleaningFee" type="number" min="0" className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Caution (FCFA)</span><input name="securityDeposit" type="number" min="0" className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Minimum de nuits</span><input name="minNights" type="number" min="1" defaultValue="1" required className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Nombre max. de voyageurs</span><input name="maxGuests" type="number" min="1" required className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Heure d’arrivée</span><input name="checkInTime" type="time" className={inputClass} /></label>
+            <label><span className="mb-2 block text-sm font-bold">Heure de départ</span><input name="checkOutTime" type="time" className={inputClass} /></label>
+          </>
+        )}
+
         <label><span className="mb-2 block text-sm font-bold">Ville</span><input name="city" required className={inputClass} placeholder="Lomé" /></label>
         <label><span className="mb-2 block text-sm font-bold">Quartier</span><input name="district" className={inputClass} placeholder="Agoè-Nyivé" /></label>
         <label><span className="mb-2 block text-sm font-bold">Adresse</span><input name="address" className={inputClass} placeholder="Adresse ou repère" /></label>
