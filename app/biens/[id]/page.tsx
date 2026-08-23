@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { ArrowLeft, Bath, BedDouble, MapPin, Maximize, ParkingCircle } from "lucide-react";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { InquiryForm } from "@/components/InquiryForm";
 
 export const dynamic = "force-dynamic";
 
@@ -12,17 +16,28 @@ function formatPrice(value: { toString(): string }, transaction: string) {
 }
 
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as any)?.id as string | undefined;
   const property = await prisma.property.findFirst({
     where: { id: params.id, status: "PUBLISHED" },
-    include: { images: { orderBy: { sortOrder: "asc" } }, owner: true, agency: true },
+    include: {
+      images: { orderBy: { sortOrder: "asc" } },
+      owner: true,
+      agency: true,
+      favorites: userId ? { where: { userId }, select: { userId: true } } : false,
+    },
   });
 
   if (!property) notFound();
+  const isFavorite = userId ? (property as any).favorites?.length > 0 : false;
 
   return (
     <main className="min-h-screen bg-sand py-8 sm:py-12">
       <div className="shell">
-        <Link href="/biens" className="mb-7 inline-flex items-center gap-2 text-sm font-bold text-forest"><ArrowLeft size={17}/> Tous les biens</Link>
+        <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+          <Link href="/biens" className="inline-flex items-center gap-2 text-sm font-bold text-forest"><ArrowLeft size={17}/> Tous les biens</Link>
+          <FavoriteButton propertyId={property.id} initial={isFavorite}/>
+        </div>
         <div className="grid gap-3 lg:grid-cols-[1.6fr_.8fr]">
           <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-ink/5 sm:min-h-[560px]">
             {property.images[0] ? <Image src={property.images[0].url} alt={property.images[0].alt || property.title} fill priority className="object-cover"/> : <div className="grid h-full min-h-[420px] place-items-center text-ink/35">Photo à venir</div>}
@@ -39,7 +54,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
             <div className="mt-10 rounded-[2rem] bg-white p-7 shadow-soft"><h2 className="text-2xl font-extrabold">Description</h2><p className="mt-4 whitespace-pre-line leading-8 text-ink/65">{property.description}</p></div>
           </section>
 
-          <aside className="h-fit rounded-[2rem] bg-ink p-7 text-white shadow-soft"><p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p><h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2><p className="mt-3 text-sm text-white/60">Vous êtes intéressé par ce bien ? Contactez l’annonceur pour organiser une visite ou obtenir plus d’informations.</p>{property.owner.phone && <a href={`tel:${property.owner.phone}`} className="mt-6 block rounded-full bg-lime px-5 py-3 text-center font-bold text-ink">Appeler {property.owner.phone}</a>}</aside>
+          <aside className="h-fit rounded-[2rem] bg-ink p-7 text-white shadow-soft"><p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p><h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2><p className="mt-3 text-sm text-white/60">Demandez une visite ou plus d’informations. Votre demande sera enregistrée dans l’espace de l’annonceur.</p>{property.owner.phone && <a href={`tel:${property.owner.phone}`} className="mt-5 block rounded-full border border-white/20 px-5 py-3 text-center font-bold">Appeler {property.owner.phone}</a>}<InquiryForm propertyId={property.id}/></aside>
         </div>
       </div>
     </main>
