@@ -7,14 +7,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole { USER OWNER AGENT AGENCY_ADMIN ADMIN }
-enum PropertyStatus { DRAFT PENDING PUBLISHED SOLD RENTED ARCHIVED }
-enum TransactionType { SALE RENT }
-enum PropertyType { HOUSE APARTMENT LAND VILLA OFFICE SHOP WAREHOUSE OTHER }
-enum PlanCode { FREE PRO AGENCY }
-enum SubscriptionStatus { INACTIVE TRIALING ACTIVE PAST_DUE CANCELED }
-enum PaymentStatus { PENDING PAID FAILED REFUNDED }
-enum PaymentType { SUBSCRIPTION BOOST FEATURED }
+enum UserRole {
+  USER
+  OWNER
+  AGENT
+  AGENCY_ADMIN
+  ADMIN
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  SOLD
+  RENTED
+  ARCHIVED
+}
+
+enum TransactionType {
+  SALE
+  RENT
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  LAND
+  VILLA
+  OFFICE
+  SHOP
+  WAREHOUSE
+  OTHER
+}
+
+enum PlanCode {
+  FREE
+  PRO
+  AGENCY
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  BOOST
+  FEATURED
+}
 
 model User {
   id String @id @default(cuid())
