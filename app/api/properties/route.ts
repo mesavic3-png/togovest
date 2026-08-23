@@ -1,78 +1,47 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { propertySchema } from "@/lib/validation/property";
 
 function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 export async function GET() {
-  const properties = await prisma.property.findMany({
-    where: { status: "PUBLISHED" },
-    include: { images: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const properties = await prisma.property.findMany({ where: { status: "PUBLISHED" }, include: { images: { orderBy: { sortOrder: "asc" } } }, orderBy: { createdAt: "desc" } });
   return NextResponse.json(properties);
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as any)?.id as string | undefined;
+    if (!userId) return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) return NextResponse.json({ error: "Compte indisponible." }, { status: 403 });
+    if (!["OWNER", "AGENT", "AGENCY_ADMIN", "ADMIN"].includes(user.role)) {
+      return NextResponse.json({ error: "Votre compte n'est pas autorisé à publier une annonce." }, { status: 403 });
+    }
+
     const body = await request.json();
     const parsed = propertySchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: parsed.error.flatten() },
-        { status: 400 },
-      );
-    }
-
-    const owner = await prisma.user.findUnique({
-      where: { email: "demo@togovest.com" },
-    });
-
-    if (!owner) {
-      return NextResponse.json(
-        { error: "Le propriétaire de démonstration n'existe pas. Exécutez le seed Prisma." },
-        { status: 500 },
-      );
-    }
+    if (!parsed.success) return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten() }, { status: 400 });
 
     const data = parsed.data;
-    const baseSlug = slugify(data.title);
-    const slug = `${baseSlug}-${Date.now().toString(36)}`;
-
+    const slug = `${slugify(data.title)}-${Date.now().toString(36)}`;
     const property = await prisma.property.create({
       data: {
-        title: data.title,
-        slug,
-        description: data.description,
-        type: data.type,
-        transactionType: data.transactionType,
-        status: "PENDING",
-        price: data.price,
-        city: data.city,
-        district: data.district || null,
-        address: data.address || null,
-        bedrooms: data.bedrooms ?? null,
-        bathrooms: data.bathrooms ?? null,
-        areaSqm: data.areaSqm ?? null,
-        landAreaSqm: data.landAreaSqm ?? null,
-        parkingSpaces: data.parkingSpaces ?? null,
-        furnished: data.furnished,
-        ownerId: owner.id,
-        images: {
-          create: data.imageUrls.map((url, index) => ({ url, sortOrder: index })),
-        },
+        title: data.title, slug, description: data.description, type: data.type, transactionType: data.transactionType,
+        status: "PENDING", price: data.price, city: data.city, district: data.district || null, address: data.address || null,
+        bedrooms: data.bedrooms ?? null, bathrooms: data.bathrooms ?? null, areaSqm: data.areaSqm ?? null,
+        landAreaSqm: data.landAreaSqm ?? null, parkingSpaces: data.parkingSpaces ?? null, furnished: data.furnished,
+        ownerId: user.id, agencyId: user.agencyId || null,
+        images: { create: data.imageUrls.map((url, index) => ({ url, sortOrder: index })) },
       },
       include: { images: true },
     });
-
     return NextResponse.json(property, { status: 201 });
   } catch (error) {
     console.error(error);
