@@ -41,18 +41,20 @@ enum PropertyType {
 }
 
 model User {
-  id         String     @id @default(cuid())
-  name       String
-  email      String     @unique
-  phone      String?
-  role       UserRole   @default(USER)
-  agencyId   String?
-  agency     Agency?    @relation(fields: [agencyId], references: [id])
-  properties Property[]
-  favorites  Favorite[]
-  inquiries  Inquiry[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String?
+  phone        String?
+  role         UserRole   @default(USER)
+  isActive     Boolean    @default(true)
+  agencyId     String?
+  agency       Agency?    @relation(fields: [agencyId], references: [id])
+  properties   Property[]
+  favorites    Favorite[]
+  inquiries    Inquiry[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Agency {
