@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         type: data.type,
         transactionType: data.transactionType,
         status: "PENDING",
-        price: isShortTerm ? data.nightlyPrice! : data.price,
+        price: isShortTerm ? data.nightlyPrice! : data.price!,
         nightlyPrice: isShortTerm ? data.nightlyPrice : null,
         weeklyPrice: isShortTerm ? data.weeklyPrice ?? null : null,
         monthlyPrice: isShortTerm ? data.monthlyPrice ?? null : null,
