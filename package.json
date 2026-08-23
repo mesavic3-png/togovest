@@ -2,7 +2,7 @@
   "name": "togovest",
   "version": "0.1.0",
   "private": true,
-  "scripts": {"dev":"next dev","build":"next build","start":"next start","db:generate":"prisma generate","db:push":"prisma db push","db:seed":"prisma db seed"},
+  "scripts": {"dev":"next dev","build":"npm run db:push && next build","start":"next start","db:generate":"prisma generate","db:push":"prisma db push","db:seed":"prisma db seed"},
   "dependencies": {
     "@aws-sdk/client-s3":"^3.850.0",
     "@aws-sdk/s3-request-presigner":"^3.850.0",
