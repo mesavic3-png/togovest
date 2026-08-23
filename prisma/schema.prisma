@@ -73,6 +73,7 @@ model Subscription {
 model Payment {
   id String @id @default(cuid())
   type PaymentType
+  plan PlanCode?
   status PaymentStatus @default(PENDING)
   amount Int
   currency String @default("XOF")
