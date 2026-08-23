@@ -31,13 +31,37 @@ export async function POST(request: Request) {
 
     const data = parsed.data;
     const slug = `${slugify(data.title)}-${Date.now().toString(36)}`;
+    const isShortTerm = data.transactionType === "SHORT_TERM";
+
     const property = await prisma.property.create({
       data: {
-        title: data.title, slug, description: data.description, type: data.type, transactionType: data.transactionType,
-        status: "PENDING", price: data.price, city: data.city, district: data.district || null, address: data.address || null,
-        bedrooms: data.bedrooms ?? null, bathrooms: data.bathrooms ?? null, areaSqm: data.areaSqm ?? null,
-        landAreaSqm: data.landAreaSqm ?? null, parkingSpaces: data.parkingSpaces ?? null, furnished: data.furnished,
-        ownerId: user.id, agencyId: user.agencyId || null,
+        title: data.title,
+        slug,
+        description: data.description,
+        type: data.type,
+        transactionType: data.transactionType,
+        status: "PENDING",
+        price: isShortTerm ? data.nightlyPrice! : data.price,
+        nightlyPrice: isShortTerm ? data.nightlyPrice : null,
+        weeklyPrice: isShortTerm ? data.weeklyPrice ?? null : null,
+        monthlyPrice: isShortTerm ? data.monthlyPrice ?? null : null,
+        cleaningFee: isShortTerm ? data.cleaningFee ?? null : null,
+        securityDeposit: isShortTerm ? data.securityDeposit ?? null : null,
+        minNights: isShortTerm ? data.minNights ?? null : null,
+        maxGuests: isShortTerm ? data.maxGuests ?? null : null,
+        checkInTime: isShortTerm ? data.checkInTime || null : null,
+        checkOutTime: isShortTerm ? data.checkOutTime || null : null,
+        city: data.city,
+        district: data.district || null,
+        address: data.address || null,
+        bedrooms: data.bedrooms ?? null,
+        bathrooms: data.bathrooms ?? null,
+        areaSqm: data.areaSqm ?? null,
+        landAreaSqm: data.landAreaSqm ?? null,
+        parkingSpaces: data.parkingSpaces ?? null,
+        furnished: data.furnished,
+        ownerId: user.id,
+        agencyId: user.agencyId || null,
         images: { create: data.imageUrls.map((url, index) => ({ url, sortOrder: index })) },
       },
       include: { images: true },
