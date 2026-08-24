@@ -1,8 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { AdminModeration } from "@/components/AdminModeration";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -11,11 +11,26 @@ export default async function AdminPage() {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user || user.role !== "ADMIN") redirect("/dashboard");
 
-  const properties = await prisma.property.findMany({
-    where: { status: "PENDING" },
-    include: { owner: true, agency: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const [users, pendingProperties, agencies, unverifiedAgencies, bookings, payments] = await Promise.all([
+    prisma.user.count(),
+    prisma.property.count({ where: { status: "PENDING" } }),
+    prisma.agency.count(),
+    prisma.agency.count({ where: { verified: false } }),
+    prisma.booking.count(),
+    prisma.payment.count(),
+  ]);
 
-  return <main className="min-h-screen bg-sand px-5 py-12 text-ink"><div className="mx-auto max-w-6xl"><p className="text-sm font-bold uppercase tracking-widest text-forest/60">Administration</p><h1 className="mt-2 text-4xl font-extrabold">Annonces à valider</h1><p className="mt-2 text-ink/60">Contrôlez les nouvelles annonces avant leur publication sur TOGOVEST.</p><div className="mt-8 space-y-4">{properties.length===0?<div className="rounded-2xl bg-white p-6">Aucune annonce en attente.</div>:properties.map(property=><article key={property.id} className="rounded-2xl bg-white p-6 shadow-sm"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center"><div><h2 className="text-xl font-extrabold">{property.title}</h2><p className="mt-1 text-sm text-ink/55">{property.city} · {property.type} · {property.transactionType}</p><p className="mt-2 text-sm">Publié par <b>{property.owner.name}</b>{property.agency ? ` · ${property.agency.name}` : ""}</p></div><AdminModeration id={property.id}/></div></article>)}</div></div></main>;
+  const cards = [
+    { label: "Utilisateurs", value: users, href: "/admin/utilisateurs", note: "Comptes et rôles" },
+    { label: "Annonces à valider", value: pendingProperties, href: "/admin/annonces", note: "Modération" },
+    { label: "Agences", value: agencies, href: "/admin/agences", note: `${unverifiedAgencies} à vérifier` },
+    { label: "Réservations", value: bookings, href: "/admin/reservations", note: "Courte durée" },
+    { label: "Paiements", value: payments, href: "/admin/revenus", note: "Revenus et transactions" },
+  ];
+
+  return <main className="min-h-screen bg-sand px-5 py-10 text-ink"><div className="mx-auto max-w-6xl">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-bold uppercase tracking-widest text-forest/60">Administration</p><h1 className="mt-2 text-4xl font-extrabold">Centre de contrôle</h1><p className="mt-2 text-ink/60">Gérez les utilisateurs, annonces, agences, réservations et revenus de TOGOVEST.</p></div><Link href="/" className="rounded-full border border-forest/20 px-5 py-3 text-center font-bold text-forest">Voir le site</Link></div>
+    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cards.map(card=><Link key={card.label} href={card.href} className="rounded-[1.5rem] bg-white p-6 shadow-sm transition hover:-translate-y-0.5"><p className="text-sm font-bold text-forest/65">{card.label}</p><p className="mt-2 text-4xl font-extrabold">{card.value}</p><p className="mt-2 text-sm text-ink/50">{card.note}</p></Link>)}</div>
+    <div className="mt-8 rounded-[1.5rem] bg-ink p-6 text-white"><h2 className="text-xl font-extrabold">Protections administrateur</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-white/65">Les actions sensibles vérifient le rôle ADMIN côté serveur. Un administrateur ne peut pas désactiver son propre compte ni retirer son propre rôle administrateur depuis l’interface.</p></div>
+  </div></main>;
 }
