@@ -2,6 +2,7 @@ import { MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Prisma, PropertyType, TransactionType } from "@prisma/client";
+import { AdSlot } from "@/components/AdSlot";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,8 @@ export default async function PropertiesPage({ searchParams }: { searchParams?: 
             <Link href="/publier" className="rounded-full bg-forest px-6 py-3 text-center font-bold text-white">Publier une annonce</Link>
           </div>
         </div>
+
+        <div className="mb-8"><AdSlot compact /></div>
 
         {properties.length === 0 ? (
           <div className="rounded-[2rem] bg-white p-10 text-center shadow-soft">
