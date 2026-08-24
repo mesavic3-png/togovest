@@ -1,0 +1,8 @@
+import Link from "next/link";
+import {redirect} from "next/navigation";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/lib/auth";
+import {prisma} from "@/lib/prisma";
+import {AdminModeration} from "@/components/AdminModeration";
+
+export default async function AdminListings(){const session=await getServerSession(authOptions);const id=(session?.user as any)?.id as string|undefined;if(!id)redirect("/connexion");const me=await prisma.user.findUnique({where:{id}});if(!me||me.role!=="ADMIN")redirect("/dashboard");const properties=await prisma.property.findMany({where:{status:"PENDING"},include:{owner:true,agency:true},orderBy:{createdAt:"asc"}});return <main className="min-h-screen bg-sand px-5 py-10 text-ink"><div className="mx-auto max-w-6xl"><div className="flex items-center justify-between gap-4"><div><p className="eyebrow">Administration</p><h1 className="mt-2 text-4xl font-extrabold">Annonces à valider</h1></div><Link href="/admin" className="font-bold text-forest">← Centre de contrôle</Link></div><div className="mt-8 space-y-4">{properties.length===0?<div className="rounded-2xl bg-white p-6">Aucune annonce en attente.</div>:properties.map(p=><article key={p.id} className="rounded-2xl bg-white p-6 shadow-sm"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center"><div><h2 className="text-xl font-extrabold">{p.title}</h2><p className="mt-1 text-sm text-ink/55">{p.city} · {p.type} · {p.transactionType}</p><p className="mt-2 text-sm">Publié par <b>{p.owner.name}</b>{p.agency?` · ${p.agency.name}`:""}</p></div><AdminModeration id={p.id}/></div></article>)}</div></div></main>}
