@@ -67,6 +67,27 @@ enum PaymentType {
   FEATURED
 }
 
+enum AdvertisementPlacement {
+  HOME_BANNER
+  SEARCH_INLINE
+  PREMIUM
+}
+
+enum AdvertisementStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum AdvertisingRequestStatus {
+  NEW
+  CONTACTED
+  APPROVED
+  REJECTED
+}
+
 model User {
   id String @id @default(cuid())
   name String
@@ -214,4 +235,38 @@ model Inquiry {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@index([propertyId, createdAt])
+}
+
+model Advertisement {
+  id String @id @default(cuid())
+  advertiserName String
+  title String
+  description String?
+  imageUrl String?
+  destinationUrl String
+  placement AdvertisementPlacement
+  status AdvertisementStatus @default(DRAFT)
+  startsAt DateTime?
+  endsAt DateTime?
+  impressions Int @default(0)
+  clicks Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([placement, status, startsAt, endsAt])
+}
+
+model AdvertisingRequest {
+  id String @id @default(cuid())
+  companyName String
+  contactName String
+  email String
+  phone String?
+  website String?
+  placement AdvertisementPlacement
+  durationWeeks Int @default(1)
+  message String?
+  status AdvertisingRequestStatus @default(NEW)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
 }
