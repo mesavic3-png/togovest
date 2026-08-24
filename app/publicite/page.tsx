@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarChart3, CheckCircle2, Megaphone, MousePointerClick } from "lucide-react";
+import { AdvertisingRequestForm } from "@/components/AdvertisingRequestForm";
 
 const offers = [
   { name: "Bannière Accueil", description: "Une grande visibilité sous la zone de recherche sur la page d’accueil.", ideal: "Idéal pour les banques, assurances, promoteurs et grandes marques." },
@@ -31,16 +32,16 @@ export default function AdvertisingPage() {
         <section className="mt-10 grid gap-5 rounded-[2rem] bg-ink p-7 text-white sm:p-10 md:grid-cols-3">
           <div><BarChart3 className="text-lime"/><h3 className="mt-3 font-extrabold">Visibilité ciblée</h3><p className="mt-2 text-sm leading-6 text-white/60">Votre marque est présentée à une audience déjà intéressée par l’immobilier.</p></div>
           <div><MousePointerClick className="text-lime"/><h3 className="mt-3 font-extrabold">Lien vers votre activité</h3><p className="mt-2 text-sm leading-6 text-white/60">La campagne peut envoyer directement les visiteurs vers votre site, WhatsApp ou page commerciale.</p></div>
-          <div><CheckCircle2 className="text-lime"/><h3 className="mt-3 font-extrabold">Campagnes contrôlées</h3><p className="mt-2 text-sm leading-6 text-white/60">Les annonces peuvent être activées pour une période définie puis retirées automatiquement dans une prochaine version.</p></div>
+          <div><CheckCircle2 className="text-lime"/><h3 className="mt-3 font-extrabold">Campagnes contrôlées</h3><p className="mt-2 text-sm leading-6 text-white/60">Les campagnes pourront être programmées avec une date de début et une date de fin, puis retirées automatiquement.</p></div>
         </section>
 
-        <section className="mt-10 rounded-[2rem] bg-white p-8 text-center shadow-soft sm:p-10">
-          <h2 className="text-3xl font-extrabold">Vous souhaitez réserver un emplacement ?</h2>
-          <p className="mx-auto mt-3 max-w-xl text-ink/60">Contactez l’équipe TOGOVEST pour préparer votre campagne. Les tarifs seront définis selon l’emplacement, la durée et le niveau de visibilité.</p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a href="mailto:contact@togovest.com?subject=Publicité sur TOGOVEST" className="rounded-full bg-forest px-6 py-3 font-bold text-white">Demander un emplacement</a>
-            <Link href="/" className="rounded-full border border-forest/20 px-6 py-3 font-bold text-forest">Retour à l’accueil</Link>
+        <section className="mt-10 rounded-[2rem] bg-white p-8 shadow-soft sm:p-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold">Réserver un espace publicitaire</h2>
+            <p className="mt-3 text-ink/60">Envoyez votre demande directement à TOGOVEST. Nous pourrons ensuite définir l’emplacement, la durée, le visuel et le tarif de la campagne.</p>
           </div>
+          <AdvertisingRequestForm />
+          <div className="mt-8 text-center"><Link href="/" className="rounded-full border border-forest/20 px-6 py-3 font-bold text-forest">Retour à l’accueil</Link></div>
         </section>
       </div>
     </main>
