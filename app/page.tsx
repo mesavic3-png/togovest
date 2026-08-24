@@ -1,3 +1,4 @@
+import {AdSlot} from "@/components/AdSlot";
 import {FeaturedProperties} from "@/components/FeaturedProperties";
 import {Footer} from "@/components/Footer";
 import {Hero} from "@/components/Hero";
@@ -7,5 +8,5 @@ import {OwnerCTA} from "@/components/OwnerCTA";
 export const dynamic = "force-dynamic";
 
 export default function Home(){
-  return <main><Navbar/><Hero/><FeaturedProperties/><OwnerCTA/><Footer/></main>;
+  return <main><Navbar/><Hero/><AdSlot/><FeaturedProperties/><OwnerCTA/><Footer/></main>;
 }
