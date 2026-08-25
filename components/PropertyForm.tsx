@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import { CheckCircle2, ImagePlus, Loader2, X } from "lucide-react";
+import { ListingAiWriter } from "@/components/ListingAiWriter";
 
 const inputClass = "w-full rounded-2xl border border-ink/15 bg-white px-4 py-3.5 outline-none transition focus:border-forest";
 
@@ -131,6 +132,7 @@ export function PropertyForm() {
         <label><span className="mb-2 block text-sm font-bold">Surface terrain (m²)</span><input name="landAreaSqm" type="number" min="1" step="0.1" className={inputClass} /></label>
         <label><span className="mb-2 block text-sm font-bold">Places de parking</span><input name="parkingSpaces" type="number" min="0" className={inputClass} /></label>
         <label className="flex items-center gap-3 self-end rounded-2xl border border-ink/10 px-4 py-3.5"><input name="furnished" type="checkbox" className="h-4 w-4"/><span className="text-sm font-bold">Bien meublé</span></label>
+        <ListingAiWriter />
         <label className="md:col-span-2"><span className="mb-2 block text-sm font-bold">Description</span><textarea name="description" required minLength={20} rows={6} className={inputClass} placeholder="Décrivez le bien, ses atouts et son environnement..." /></label>
         <div className="md:col-span-2">
           <span className="mb-2 block text-sm font-bold">Photos du bien</span>
