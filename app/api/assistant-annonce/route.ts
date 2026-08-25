@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     if (areaSqm && !isLand) features.push(`une surface habitable de ${areaSqm} m²`);
     if (landAreaSqm) features.push(`un terrain de ${landAreaSqm} m²`);
     if (parkingSpaces) features.push(`${parkingSpaces === 1 ? "une" : parkingSpaces} place${parkingSpaces > 1 ? "s" : ""} de parking`);
-    if (furnished && !isLand) features.push(`un aménagement ${furnishedLabel}`);
+    if (furnished && !isLand) features.push("un ameublement complet");
     if (maxGuests && transactionType === "SHORT_TERM") features.push(`une capacité d’accueil allant jusqu’à ${maxGuests} voyageur${maxGuests > 1 ? "s" : ""}`);
 
     const priceText = transactionType === "SHORT_TERM" ? money(nightlyPrice) : money(price);
