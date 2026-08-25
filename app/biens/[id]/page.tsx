@@ -50,6 +50,13 @@ function similarityScore(current: any, candidate: any) {
   return score;
 }
 
+function sortRecommendations(current: any, candidates: any[]) {
+  return candidates
+    .map((candidate) => ({ candidate, score: similarityScore(current, candidate) }))
+    .sort((a, b) => b.score - a.score)
+    .map(({ candidate }) => candidate);
+}
+
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id as string | undefined;
@@ -67,7 +74,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   const isFavorite = userId ? (property as any).favorites?.length > 0 : false;
   const isShortTerm = property.transactionType === "SHORT_TERM";
 
-  const candidates = await prisma.property.findMany({
+  const strictCandidates = await prisma.property.findMany({
     where: {
       id: { not: property.id },
       status: "PUBLISHED",
@@ -78,11 +85,51 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
     take: 24,
   });
 
-  const recommendations = candidates
-    .map((candidate) => ({ candidate, score: similarityScore(property, candidate) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map(({ candidate }) => candidate);
+  let recommendations = sortRecommendations(property, strictCandidates).slice(0, 3);
+
+  if (recommendations.length < 3) {
+    const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
+    const sameCityCandidates = await prisma.property.findMany({
+      where: {
+        id: { notIn: Array.from(existingIds) },
+        status: "PUBLISHED",
+        city: { equals: property.city, mode: "insensitive" },
+      },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 18,
+    });
+    recommendations = [...recommendations, ...sortRecommendations(property, sameCityCandidates)].slice(0, 3);
+  }
+
+  if (recommendations.length < 3) {
+    const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
+    const sameTypeCandidates = await prisma.property.findMany({
+      where: {
+        id: { notIn: Array.from(existingIds) },
+        status: "PUBLISHED",
+        type: property.type,
+      },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 18,
+    });
+    recommendations = [...recommendations, ...sortRecommendations(property, sameTypeCandidates)].slice(0, 3);
+  }
+
+  if (recommendations.length < 3) {
+    const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
+    const fallbackCandidates = await prisma.property.findMany({
+      where: {
+        id: { notIn: Array.from(existingIds) },
+        status: "PUBLISHED",
+      },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 18,
+    });
+    recommendations = [...recommendations, ...sortRecommendations(property, fallbackCandidates)].slice(0, 3);
+  }
 
   return (
     <main className="min-h-screen bg-sand py-8 sm:py-12">
@@ -122,7 +169,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
         {recommendations.length > 0 && <section className="mt-14 border-t border-ink/10 pt-10">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div><p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-[.16em] text-forest"><Sparkles size={17}/> Suggestions intelligentes</p><h2 className="mt-2 text-3xl font-extrabold">Des biens qui pourraient vous intéresser</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">Sélectionnés selon la transaction, le type de bien, la localisation, le prix et les caractéristiques de cette annonce.</p></div>
+            <div><p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-[.16em] text-forest"><Sparkles size={17}/> Suggestions intelligentes</p><h2 className="mt-2 text-3xl font-extrabold">Des biens qui pourraient vous intéresser</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">TOGOVEST privilégie les biens les plus proches de cette annonce. S’il y en a peu, la recherche s’élargit progressivement à la même ville, au même type de bien, puis aux meilleures annonces disponibles.</p></div>
             <Link href="/biens" className="text-sm font-bold text-forest">Voir tous les biens →</Link>
           </div>
           <div className="grid gap-5 md:grid-cols-3">{recommendations.map((item) => {
