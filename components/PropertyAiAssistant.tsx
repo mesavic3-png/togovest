@@ -10,22 +10,29 @@ type ResultProperty = {
   city: string;
   district: string | null;
   price: string;
+  nightlyPrice: string | null;
   currency: string;
   transactionType: string;
   bedrooms: number | null;
+  bathrooms: number | null;
   type: string;
+  areaSqm: number | null;
+  landAreaSqm: number | null;
+  furnished: boolean;
+  parkingSpaces: number | null;
 };
 
 type AssistantResponse = {
   reply: string;
-  filters: Record<string, string | number | null>;
+  filters: Record<string, string | number | boolean | null>;
   properties: ResultProperty[];
 };
 
 const examples = [
   "Je cherche une maison de 3 chambres à Lomé pour moins de 40 millions FCFA",
-  "Appartement à louer à Agoè, budget 250 000 FCFA par mois",
-  "Villa pour un court séjour à Lomé pour 4 personnes",
+  "Appartement meublé à louer à Agoè, 2 chambres, parking, budget 250 000 FCFA par mois",
+  "Terrain d'au moins 600 m² à Adidogomé pour moins de 25 millions FCFA",
+  "Villa pour un court séjour à Baguida pour 4 personnes, maximum 75 000 FCFA la nuit",
 ];
 
 export function PropertyAiAssistant({ compact = false }: { compact?: boolean }) {
@@ -65,12 +72,12 @@ export function PropertyAiAssistant({ compact = false }: { compact?: boolean }) 
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-lime">Assistant immobilier IA</p>
                 <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">Décrivez simplement le bien que vous cherchez.</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">TOGOVEST comprend votre demande en français et recherche les annonces publiées qui correspondent le mieux.</p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">TOGOVEST comprend le type de bien, la zone, le budget, la superficie, les chambres, le parking et les besoins de courte durée.</p>
               </div>
             </div>
 
             <form onSubmit={submit} className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ex. Maison 3 chambres à Lomé, moins de 40 millions FCFA" className="min-w-0 flex-1 rounded-2xl border border-white/15 bg-white px-5 py-4 text-ink outline-none placeholder:text-ink/40"/>
+              <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ex. Terrain 600 m² à Adidogomé, moins de 25 millions FCFA" className="min-w-0 flex-1 rounded-2xl border border-white/15 bg-white px-5 py-4 text-ink outline-none placeholder:text-ink/40"/>
               <button disabled={loading || !message.trim()} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-lime px-6 py-4 font-extrabold text-ink disabled:opacity-50">{loading ? <Loader2 size={18} className="animate-spin"/> : <Send size={18}/>}Rechercher</button>
             </form>
 
@@ -82,15 +89,24 @@ export function PropertyAiAssistant({ compact = false }: { compact?: boolean }) 
             {result && <>
               <div className="flex items-start gap-3"><Sparkles className="mt-0.5 text-forest" size={20}/><p className="leading-7 text-ink/75">{result.reply}</p></div>
               <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {result.properties.map((property) => <Link key={property.id} href={`/biens/${property.id}`} className="rounded-2xl border border-ink/10 p-5 transition hover:-translate-y-0.5 hover:shadow-soft">
-                  <p className="text-xs font-extrabold uppercase tracking-wider text-forest/60">{property.type} · {property.transactionType === "SALE" ? "Vente" : property.transactionType === "RENT" ? "Location" : "Court séjour"}</p>
-                  <h3 className="mt-2 text-lg font-extrabold">{property.title}</h3>
-                  <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/55"><MapPin size={14}/>{property.district ? `${property.district}, ` : ""}{property.city}</p>
-                  <p className="mt-4 font-extrabold text-forest">{Number(property.price).toLocaleString("fr-FR")} {property.currency}{property.transactionType === "RENT" ? " / mois" : property.transactionType === "SHORT_TERM" ? " / nuit" : ""}</p>
-                  {property.bedrooms ? <p className="mt-1 text-sm text-ink/50">{property.bedrooms} chambre(s)</p> : null}
-                </Link>)}
+                {result.properties.map((property) => {
+                  const displayedPrice = property.transactionType === "SHORT_TERM" && property.nightlyPrice ? property.nightlyPrice : property.price;
+                  return <Link key={property.id} href={`/biens/${property.id}`} className="rounded-2xl border border-ink/10 p-5 transition hover:-translate-y-0.5 hover:shadow-soft">
+                    <p className="text-xs font-extrabold uppercase tracking-wider text-forest/60">{property.type} · {property.transactionType === "SALE" ? "Vente" : property.transactionType === "RENT" ? "Location" : "Court séjour"}</p>
+                    <h3 className="mt-2 text-lg font-extrabold">{property.title}</h3>
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/55"><MapPin size={14}/>{property.district ? `${property.district}, ` : ""}{property.city}</p>
+                    <p className="mt-4 font-extrabold text-forest">{Number(displayedPrice).toLocaleString("fr-FR")} {property.currency}{property.transactionType === "RENT" ? " / mois" : property.transactionType === "SHORT_TERM" ? " / nuit" : ""}</p>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink/50">
+                      {property.bedrooms ? <span>{property.bedrooms} ch.</span> : null}
+                      {property.bathrooms ? <span>{property.bathrooms} sdb</span> : null}
+                      {(property.type === "LAND" ? property.landAreaSqm : property.areaSqm) ? <span>{property.type === "LAND" ? property.landAreaSqm : property.areaSqm} m²</span> : null}
+                      {property.parkingSpaces ? <span>{property.parkingSpaces} parking</span> : null}
+                      {property.furnished ? <span>Meublé</span> : null}
+                    </div>
+                  </Link>;
+                })}
               </div>
-              {result.properties.length === 0 && <div className="mt-6 rounded-2xl bg-sand p-6"><p className="font-bold">Aucune annonce exacte pour le moment.</p><p className="mt-2 text-sm text-ink/60">Essayez d’élargir le budget, la zone ou le type de bien.</p></div>}
+              {result.properties.length === 0 && <div className="mt-6 rounded-2xl bg-sand p-6"><p className="font-bold">Aucune annonce exacte pour le moment.</p><p className="mt-2 text-sm text-ink/60">Essayez d’élargir le budget, la zone, la superficie ou le type de bien.</p></div>}
             </>}
           </div>}
         </div>
