@@ -21,7 +21,7 @@ const passwordSchema = z.object({
   message: "Les nouveaux mots de passe ne correspondent pas.",
 });
 
-const accountSchema = z.discriminatedUnion("type", [profileSchema, passwordSchema]);
+const accountSchema = z.union([profileSchema, passwordSchema]);
 
 export async function PATCH(request: Request) {
   try {
