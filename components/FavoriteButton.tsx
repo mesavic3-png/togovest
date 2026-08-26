@@ -2,6 +2,7 @@
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
+import { ReportButton } from "@/components/ReportButton";
 
 export function FavoriteButton({ propertyId, initial = false }: { propertyId: string; initial?: boolean }) {
   const [favorite, setFavorite] = useState(initial);
@@ -18,5 +19,8 @@ export function FavoriteButton({ propertyId, initial = false }: { propertyId: st
     setLoading(false);
   }
 
-  return <button onClick={toggle} disabled={loading} className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm font-bold"><Heart size={18} fill={favorite ? "currentColor" : "none"}/>{favorite ? "Enregistré" : "Ajouter aux favoris"}</button>;
+  return <div className="flex flex-wrap items-center gap-2">
+    <ReportButton propertyId={propertyId}/>
+    <button onClick={toggle} disabled={loading} className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm font-bold"><Heart size={18} fill={favorite ? "currentColor" : "none"}/>{favorite ? "Enregistré" : "Ajouter aux favoris"}</button>
+  </div>;
 }
