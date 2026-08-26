@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ConnexionPage() {
@@ -9,6 +9,11 @@ export default function ConnexionPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [lastEmail, setLastEmail] = useState("");
+
+  useEffect(() => {
+    const requestedMode = new URLSearchParams(window.location.search).get("mode");
+    if (requestedMode === "register") setMode("register");
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +32,7 @@ export default function ConnexionPage() {
           name: String(form.get("name") || ""),
           email,
           password,
-          role: String(form.get("role") || "USER"),
+          role: String(form.get("role") || "OWNER"),
         }),
       });
       const data = await response.json();
@@ -77,10 +82,10 @@ export default function ConnexionPage() {
           {mode === "register" && (
             <>
               <input name="name" required placeholder="Nom complet" className="w-full rounded-xl border border-ink/15 px-4 py-3" />
-              <select name="role" className="w-full rounded-xl border border-ink/15 px-4 py-3">
-                <option value="USER">Acheteur / locataire</option>
+              <select name="role" defaultValue="OWNER" className="w-full rounded-xl border border-ink/15 px-4 py-3">
                 <option value="OWNER">Propriétaire</option>
                 <option value="AGENT">Agent immobilier</option>
+                <option value="USER">Acheteur / locataire</option>
               </select>
             </>
           )}
