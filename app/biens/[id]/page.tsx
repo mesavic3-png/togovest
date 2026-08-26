@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ArrowLeft, Bath, BedDouble, Clock3, MapPin, Maximize, MessageCircle, ParkingCircle, Phone, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Bath, BedDouble, Clock3, MapPin, Maximize, ParkingCircle, Sparkles, Users } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -73,9 +73,6 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   if (!property) notFound();
   const isFavorite = userId ? (property as any).favorites?.length > 0 : false;
   const isShortTerm = property.transactionType === "SHORT_TERM";
-  const contactPhone = property.agency?.phone || property.owner.phone || "";
-  const whatsappPhone = contactPhone.replace(/\D/g, "");
-  const whatsappText = encodeURIComponent(`Bonjour, je vous contacte depuis TOGOVEST au sujet de l’annonce « ${property.title} » (${property.city}).`);
 
   const strictCandidates = await prisma.property.findMany({
     where: {
@@ -165,17 +162,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               <p className="mt-2 text-sm text-white/60">Choisissez vos dates. Les réservations en attente ou confirmées bloquent automatiquement les dates qui se chevauchent.</p>
               <BookingForm propertyId={property.id} nightlyPrice={Number(property.nightlyPrice.toString())} cleaningFee={property.cleaningFee ? Number(property.cleaningFee.toString()) : 0} minNights={property.minNights || 1} maxGuests={property.maxGuests || 1}/>
             </> : <>
-              <p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p>
-              <h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2>
-              <p className="mt-3 text-sm text-white/60">Demandez une visite ou plus d’informations. Choisissez le moyen de contact qui vous convient.</p>
-              <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                {contactPhone && <a href={`tel:${contactPhone}`} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 font-bold text-ink"><Phone size={17}/> Appeler</a>}
-                {whatsappPhone && <a href={`https://wa.me/${whatsappPhone}?text=${whatsappText}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-lime px-4 py-3 font-bold text-ink"><MessageCircle size={17}/> WhatsApp</a>}
-                <a href="#contact-form" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-4 py-3 font-bold sm:col-span-2 lg:col-span-1 xl:col-span-2"><MessageCircle size={17}/> Envoyer un message</a>
-              </div>
-              {property.agency && contactPhone && <p className="mt-3 text-xs text-white/45">Contact de l’agence : {contactPhone}</p>}
-              {!property.agency && contactPhone && <p className="mt-3 text-xs text-white/45">Contact du propriétaire : {contactPhone}</p>}
-              <div id="contact-form" className="scroll-mt-24"><InquiryForm propertyId={property.id}/></div>
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p><h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2><p className="mt-3 text-sm text-white/60">Demandez une visite ou plus d’informations. Votre demande sera enregistrée dans l’espace de l’annonceur.</p>{property.owner.phone && <a href={`tel:${property.owner.phone}`} className="mt-5 block rounded-full border border-white/20 px-5 py-3 text-center font-bold">Appeler {property.owner.phone}</a>}<InquiryForm propertyId={property.id}/>
             </>}
           </aside>
         </div>
