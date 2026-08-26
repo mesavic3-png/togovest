@@ -12,10 +12,10 @@ export function OwnerCTA() {
             <h2 className="mt-4 max-w-2xl text-3xl font-extrabold sm:text-5xl">Découvrez l’espace professionnel TOGOVEST.</h2>
             <p className="mt-5 max-w-xl leading-7 text-white/65">TOGOVEST accompagne les propriétaires, agents et agences dans la gestion et la mise en valeur de leurs biens.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-center font-bold transition hover:border-lime/50 hover:bg-white/5">
+              <Link href="/espace-professionnel" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-center font-bold transition hover:border-lime/50 hover:bg-white/5">
                 Espace professionnel <ArrowUpRight size={18} />
               </Link>
-              <Link href="/connexion" className="inline-flex items-center justify-center rounded-full px-6 py-3.5 text-center font-bold text-white/75 transition hover:text-white">
+              <Link href="/connexion?mode=login" className="inline-flex items-center justify-center rounded-full px-6 py-3.5 text-center font-bold text-white/75 transition hover:text-white">
                 Se connecter
               </Link>
             </div>
