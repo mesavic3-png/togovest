@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (user?.passwordHash && user.isActive) {
     const token = await createAuthToken(user.id, "PASSWORD_RESET");
-    await sendPasswordResetEmail(user.email, token);
+    if (token) await sendPasswordResetEmail(user.email, token);
   }
 
   return NextResponse.json({ message });
