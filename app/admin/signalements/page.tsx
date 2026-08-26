@@ -14,7 +14,7 @@ const labels: Record<string, string> = {
 };
 
 function parseReport(message: string) {
-  const match = message.match(/^\[SIGNALEMENT:([A-Z_]+)\]\s*(.*)$/s);
+  const match = message.match(/^\[SIGNALEMENT:([A-Z_]+)\]\s*([\s\S]*)$/);
   return { reason: match?.[1] || "OTHER", details: match?.[2] || "" };
 }
 
