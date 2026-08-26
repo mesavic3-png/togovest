@@ -75,11 +75,17 @@ enum PaymentType {
   FEATURED
 }
 
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
 model User {
   id String @id @default(cuid())
   name String
   email String @unique
   passwordHash String?
+  emailVerifiedAt DateTime? @default(now())
   phone String?
   role UserRole @default(USER)
   isActive Boolean @default(true)
@@ -91,8 +97,22 @@ model User {
   bookings Booking[]
   subscription Subscription?
   payments Payment[]
+  authTokens AuthToken[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AuthToken {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  type AuthTokenType
+  expiresAt DateTime
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 model Agency {
