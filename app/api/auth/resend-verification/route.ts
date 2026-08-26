@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (user && !user.emailVerifiedAt && user.isActive) {
     const token = await createAuthToken(user.id, "EMAIL_VERIFICATION");
-    await sendVerificationEmail(user.email, token);
+    if (token) await sendVerificationEmail(user.email, token);
   }
 
   return NextResponse.json({ message });
