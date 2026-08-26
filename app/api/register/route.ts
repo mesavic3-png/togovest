@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   });
 
   const token = await createAuthToken(user.id, "EMAIL_VERIFICATION");
-  const emailSent = await sendVerificationEmail(user.email, token);
+  const emailSent = token ? await sendVerificationEmail(user.email, token) : false;
 
   return NextResponse.json(
     { ...user, requiresVerification: true, emailSent },
