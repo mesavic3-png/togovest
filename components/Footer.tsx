@@ -61,7 +61,7 @@ export function Footer() {
           <p>© 2026 TOGOVEST. Tous droits réservés.</p>
           <div className="flex flex-wrap gap-5">
             <span className="flex gap-1.5"><MapPin size={13}/>Lomé, Togo</span>
-            <a href="mailto:contact@togovest.com" className="flex gap-1.5 hover:text-forest"><Mail size={13}/>contact@togovest.com</a>
+            <a href="mailto:togovest@gmail.com" className="flex gap-1.5 hover:text-forest"><Mail size={13}/>togovest@gmail.com</a>
           </div>
         </div>
       </div>
