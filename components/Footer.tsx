@@ -26,6 +26,14 @@ const columns = [
       ["Favoris", "/favoris"],
     ],
   },
+  {
+    title: "Informations",
+    links: [
+      ["Conditions d’utilisation", "/conditions-utilisation"],
+      ["Politique de confidentialité", "/politique-confidentialite"],
+      ["Mentions légales", "/mentions-legales"],
+    ],
+  },
 ];
 
 export function Footer() {
@@ -40,7 +48,7 @@ export function Footer() {
           <p className="mt-5 max-w-sm text-sm leading-6 text-ink/60">La plateforme immobilière qui rapproche les Togolais de leur prochain chez-eux.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           {columns.map((column) => (
             <div key={column.title}>
               <h3 className="text-sm font-extrabold">{column.title}</h3>
