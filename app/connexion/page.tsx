@@ -8,7 +8,7 @@ export default function ConnexionPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [lastEmail, setLastEmail] = useState("");
+  const [lastIdentifier, setLastIdentifier] = useState("");
 
   useEffect(() => {
     const requestedMode = new URLSearchParams(window.location.search).get("mode");
@@ -20,17 +20,19 @@ export default function ConnexionPage() {
     setError("");
     setNotice("");
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") || "");
+    const identifier = String(form.get("identifier") || "").trim();
     const password = String(form.get("password") || "");
-    setLastEmail(email);
+    setLastIdentifier(identifier);
 
     if (mode === "register") {
+      const isEmail = identifier.includes("@");
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: String(form.get("name") || ""),
-          email,
+          email: isEmail ? identifier : "",
+          phone: isEmail ? "" : identifier,
           password,
           role: String(form.get("role") || "OWNER"),
         }),
@@ -41,16 +43,20 @@ export default function ConnexionPage() {
         return;
       }
       setMode("login");
-      setNotice(data.emailSent
-        ? "Compte créé. Consultez votre email pour confirmer votre adresse avant de vous connecter."
-        : "Compte créé, mais l’email n’a pas pu être envoyé. Utilisez le bouton de renvoi ci-dessous.");
+      if (data.requiresVerification) {
+        setNotice(data.emailSent
+          ? "Compte créé. Consultez votre email pour confirmer votre adresse avant de vous connecter."
+          : "Compte créé, mais l’email n’a pas pu être envoyé. Utilisez le bouton de renvoi ci-dessous.");
+      } else {
+        setNotice("Compte créé avec votre numéro de téléphone. Vous pouvez maintenant vous connecter.");
+      }
       return;
     }
 
     const { signIn } = await import("next-auth/react");
-    const result = await signIn("credentials", { email, password, redirect: false });
+    const result = await signIn("credentials", { identifier, password, redirect: false });
     if (result?.error) {
-      setError("Connexion impossible. Vérifiez vos identifiants et la confirmation de votre email.");
+      setError("Connexion impossible. Vérifiez votre email ou numéro de téléphone et votre mot de passe.");
       return;
     }
     router.push("/dashboard");
@@ -58,15 +64,15 @@ export default function ConnexionPage() {
   }
 
   async function resendVerification() {
-    if (!lastEmail) {
-      setError("Entrez d’abord votre adresse email.");
+    if (!lastIdentifier.includes("@")) {
+      setError("Entrez votre adresse email pour renvoyer l’email de vérification.");
       return;
     }
     setError("");
     const response = await fetch("/api/auth/resend-verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: lastEmail }),
+      body: JSON.stringify({ email: lastIdentifier }),
     });
     const data = await response.json();
     setNotice(data.message);
@@ -77,7 +83,9 @@ export default function ConnexionPage() {
       <div className="mx-auto max-w-lg rounded-[2rem] bg-white p-7 shadow-soft sm:p-10">
         <a href="/" className="font-display text-xl font-extrabold">TOGOVEST.</a>
         <h1 className="mt-8 text-3xl font-extrabold">{mode === "login" ? "Connexion" : "Créer un compte"}</h1>
-        <p className="mt-2 text-sm text-ink/60">Accédez à votre espace pour gérer vos annonces immobilières.</p>
+        <p className="mt-2 text-sm text-ink/60">
+          {mode === "login" ? "Connectez-vous avec votre email ou votre numéro de téléphone." : "Inscrivez-vous avec votre email ou votre numéro de téléphone."}
+        </p>
         <form onSubmit={submit} className="mt-8 space-y-4">
           {mode === "register" && (
             <>
@@ -89,8 +97,15 @@ export default function ConnexionPage() {
               </select>
             </>
           )}
-          <input name="email" type="email" required placeholder="Email" defaultValue={lastEmail} className="w-full rounded-xl border border-ink/15 px-4 py-3" />
-          <input name="password" type="password" minLength={8} required placeholder="Mot de passe (8 caractères minimum)" className="w-full rounded-xl border border-ink/15 px-4 py-3" />
+          <input
+            name="identifier"
+            required
+            placeholder="Email ou téléphone (ex. +22890123456)"
+            defaultValue={lastIdentifier}
+            autoComplete="username"
+            className="w-full rounded-xl border border-ink/15 px-4 py-3"
+          />
+          <input name="password" type="password" minLength={8} required placeholder="Mot de passe (8 caractères minimum)" autoComplete={mode === "login" ? "current-password" : "new-password"} className="w-full rounded-xl border border-ink/15 px-4 py-3" />
           {notice && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest">{notice}</p>}
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
           <button className="w-full rounded-full bg-forest px-5 py-3.5 font-bold text-white">{mode === "login" ? "Se connecter" : "Créer mon compte"}</button>
