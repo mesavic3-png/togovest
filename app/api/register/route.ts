@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { createAuthToken } from "@/lib/auth-tokens";
+import { sendVerificationEmail } from "@/lib/email";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -21,9 +23,21 @@ export async function POST(request: Request) {
 
   const passwordHash = await hash(parsed.data.password, 12);
   const user = await prisma.user.create({
-    data: { name: parsed.data.name, email, passwordHash, role: parsed.data.role },
+    data: {
+      name: parsed.data.name,
+      email,
+      passwordHash,
+      role: parsed.data.role,
+      emailVerifiedAt: null,
+    },
     select: { id: true, name: true, email: true, role: true },
   });
 
-  return NextResponse.json(user, { status: 201 });
+  const token = await createAuthToken(user.id, "EMAIL_VERIFICATION");
+  const emailSent = await sendVerificationEmail(user.email, token);
+
+  return NextResponse.json(
+    { ...user, requiresVerification: true, emailSent },
+    { status: 201 },
+  );
 }
