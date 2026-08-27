@@ -1,12 +1,45 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useState } from "react";
-import { CheckCircle2, ImagePlus, Loader2, X } from "lucide-react";
+import {
+  Building2,
+  Car,
+  Check,
+  CheckCircle2,
+  Droplets,
+  ImagePlus,
+  Loader2,
+  ParkingCircle,
+  PlugZap,
+  ShieldCheck,
+  Snowflake,
+  Sofa,
+  Trees,
+  Waves,
+  Wifi,
+  X,
+} from "lucide-react";
 import { ListingAiWriter } from "@/components/ListingAiWriter";
 
 const inputClass = "w-full rounded-2xl border border-ink/15 bg-white px-4 py-3.5 outline-none transition focus:border-forest";
 
 type TransactionType = "SALE" | "RENT" | "SHORT_TERM";
+type Amenity = "POOL" | "AIR_CONDITIONING" | "GARAGE" | "GARDEN" | "BALCONY" | "ELEVATOR" | "SECURITY" | "WIFI" | "FURNISHED" | "RUNNING_WATER" | "GENERATOR" | "PARKING";
+
+const amenityOptions: { value: Amenity; label: string; icon: React.ReactNode }[] = [
+  { value: "POOL", label: "Piscine", icon: <Waves size={21} /> },
+  { value: "AIR_CONDITIONING", label: "Climatisation", icon: <Snowflake size={21} /> },
+  { value: "GARAGE", label: "Garage", icon: <Car size={21} /> },
+  { value: "GARDEN", label: "Jardin", icon: <Trees size={21} /> },
+  { value: "BALCONY", label: "Balcon", icon: <Building2 size={21} /> },
+  { value: "ELEVATOR", label: "Ascenseur", icon: <Building2 size={21} /> },
+  { value: "SECURITY", label: "Sécurité", icon: <ShieldCheck size={21} /> },
+  { value: "WIFI", label: "WiFi", icon: <Wifi size={21} /> },
+  { value: "FURNISHED", label: "Meublé", icon: <Sofa size={21} /> },
+  { value: "RUNNING_WATER", label: "Eau courante", icon: <Droplets size={21} /> },
+  { value: "GENERATOR", label: "Électricité / groupe", icon: <PlugZap size={21} /> },
+  { value: "PARKING", label: "Parking", icon: <ParkingCircle size={21} /> },
+];
 
 export function PropertyForm() {
   const [loading, setLoading] = useState(false);
@@ -15,6 +48,11 @@ export function PropertyForm() {
   const [success, setSuccess] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [transactionType, setTransactionType] = useState<TransactionType>("SALE");
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+
+  function toggleAmenity(value: Amenity) {
+    setAmenities((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  }
 
   async function uploadFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []).slice(0, Math.max(0, 12 - imageUrls.length));
@@ -75,7 +113,8 @@ export function PropertyForm() {
       areaSqm: form.get("areaSqm") ? Number(form.get("areaSqm")) : undefined,
       landAreaSqm: form.get("landAreaSqm") ? Number(form.get("landAreaSqm")) : undefined,
       parkingSpaces: form.get("parkingSpaces") ? Number(form.get("parkingSpaces")) : undefined,
-      furnished: form.get("furnished") === "on",
+      furnished: amenities.includes("FURNISHED"),
+      amenities,
       imageUrls,
     };
 
@@ -92,6 +131,7 @@ export function PropertyForm() {
       event.currentTarget.reset();
       setTransactionType("SALE");
       setImageUrls([]);
+      setAmenities([]);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
     } finally {
@@ -131,7 +171,29 @@ export function PropertyForm() {
         <label><span className="mb-2 block text-sm font-bold">Surface habitable (m²)</span><input name="areaSqm" type="number" min="1" step="0.1" className={inputClass} /></label>
         <label><span className="mb-2 block text-sm font-bold">Surface terrain (m²)</span><input name="landAreaSqm" type="number" min="1" step="0.1" className={inputClass} /></label>
         <label><span className="mb-2 block text-sm font-bold">Places de parking</span><input name="parkingSpaces" type="number" min="0" className={inputClass} /></label>
-        <label className="flex items-center gap-3 self-end rounded-2xl border border-ink/10 px-4 py-3.5"><input name="furnished" type="checkbox" className="h-4 w-4"/><span className="text-sm font-bold">Bien meublé</span></label>
+
+        <section className="md:col-span-2 mt-2 rounded-[1.75rem] border border-ink/10 bg-sand/45 p-5 sm:p-6">
+          <h2 className="text-2xl font-extrabold text-ink">Équipements</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/55">Sélectionnez les équipements réellement disponibles dans le bien.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {amenityOptions.map((option) => {
+              const selected = amenities.includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleAmenity(option.value)}
+                  className={`flex min-h-16 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition ${selected ? "border-forest bg-forest text-white shadow-sm" : "border-ink/10 bg-white text-ink/70 hover:border-forest/35"}`}
+                >
+                  <span className="flex items-center gap-3 font-semibold"><span className={selected ? "text-lime" : "text-forest"}>{option.icon}</span>{option.label}</span>
+                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${selected ? "border-lime bg-lime text-ink" : "border-ink/15 bg-white"}`}>{selected && <Check size={15} strokeWidth={3} />}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <ListingAiWriter />
         <label className="md:col-span-2"><span className="mb-2 block text-sm font-bold">Description</span><textarea name="description" required minLength={20} rows={6} className={inputClass} placeholder="Décrivez le bien, ses atouts et son environnement..." /></label>
         <div className="md:col-span-2">
