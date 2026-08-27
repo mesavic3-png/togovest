@@ -41,6 +41,7 @@ export const propertySchema = z.object({
   furnished: z.coerce.boolean().default(false),
   amenities: z.array(z.enum(amenityValues)).max(12).default([]),
   imageUrls: z.array(z.string().url()).max(12).default([]),
+  videoUrl: z.string().url().optional().or(z.literal("")),
 }).superRefine((data, ctx) => {
   if (data.transactionType === "SHORT_TERM") {
     if (!data.nightlyPrice) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["nightlyPrice"], message: "Le prix par nuit est requis." });
