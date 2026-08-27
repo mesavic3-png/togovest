@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { ListingAiWriter } from "@/components/ListingAiWriter";
+import { VideoUploader } from "@/components/VideoUploader";
 
 const inputClass = "w-full rounded-2xl border border-ink/15 bg-white px-4 py-3.5 outline-none transition focus:border-forest";
 
@@ -47,6 +48,7 @@ export function PropertyForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<TransactionType>("SALE");
   const [amenities, setAmenities] = useState<Amenity[]>([]);
 
@@ -116,6 +118,7 @@ export function PropertyForm() {
       furnished: amenities.includes("FURNISHED"),
       amenities,
       imageUrls,
+      videoUrl: videoUrl || undefined,
     };
 
     try {
@@ -131,6 +134,7 @@ export function PropertyForm() {
       event.currentTarget.reset();
       setTransactionType("SALE");
       setImageUrls([]);
+      setVideoUrl(null);
       setAmenities([]);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
@@ -179,13 +183,7 @@ export function PropertyForm() {
             {amenityOptions.map((option) => {
               const selected = amenities.includes(option.value);
               return (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => toggleAmenity(option.value)}
-                  className={`flex min-h-16 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition ${selected ? "border-forest bg-forest text-white shadow-sm" : "border-ink/10 bg-white text-ink/70 hover:border-forest/35"}`}
-                >
+                <button key={option.value} type="button" aria-pressed={selected} onClick={() => toggleAmenity(option.value)} className={`flex min-h-16 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition ${selected ? "border-forest bg-forest text-white shadow-sm" : "border-ink/10 bg-white text-ink/70 hover:border-forest/35"}`}>
                   <span className="flex items-center gap-3 font-semibold"><span className={selected ? "text-lime" : "text-forest"}>{option.icon}</span>{option.label}</span>
                   <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${selected ? "border-lime bg-lime text-ink" : "border-ink/15 bg-white"}`}>{selected && <Check size={15} strokeWidth={3} />}</span>
                 </button>
@@ -202,6 +200,7 @@ export function PropertyForm() {
           <small className="mt-2 block text-ink/50">Jusqu’à 12 images JPG, PNG ou WebP, 10 Mo maximum par image.</small>
           {imageUrls.length > 0 && <div className="mt-4 grid gap-2 sm:grid-cols-2">{imageUrls.map((url, index) => <div key={url} className="flex items-center justify-between gap-3 rounded-xl bg-sand px-3 py-2 text-xs"><span className="truncate">Photo {index + 1}</span><button type="button" onClick={() => setImageUrls((items) => items.filter((item) => item !== url))} aria-label="Supprimer la photo"><X size={16}/></button></div>)}</div>}
         </div>
+        <VideoUploader videoUrl={videoUrl} onChange={setVideoUrl}/>
       </div>
 
       {message && <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${success ? "bg-lime/25 text-forest" : "bg-red-50 text-red-700"}`}>{success && <CheckCircle2 className="mr-2 inline" size={18}/>} {message}</div>}
