@@ -200,6 +200,7 @@ model Property {
   areaSqm Float?
   landAreaSqm Float?
   furnished Boolean @default(false)
+  amenities String[] @default([])
   parkingSpaces Int?
   isFeatured Boolean @default(false)
   featuredUntil DateTime?
