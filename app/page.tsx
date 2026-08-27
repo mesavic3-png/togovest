@@ -5,9 +5,10 @@ import {Hero} from "@/components/Hero";
 import {Navbar} from "@/components/Navbar";
 import {OwnerCTA} from "@/components/OwnerCTA";
 import {PropertyAiAssistant} from "@/components/PropertyAiAssistant";
+import {TrustStrip} from "@/components/TrustStrip";
 
 export const dynamic = "force-dynamic";
 
 export default function Home(){
-  return <main><Navbar/><Hero/><PropertyAiAssistant compact/><AdSlot/><FeaturedProperties/><OwnerCTA/><Footer/></main>;
+  return <main><Navbar/><Hero/><TrustStrip/><PropertyAiAssistant compact/><AdSlot/><FeaturedProperties/><OwnerCTA/><Footer/></main>;
 }
