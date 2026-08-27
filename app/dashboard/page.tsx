@@ -87,6 +87,7 @@ export default async function DashboardPage() {
     include: { agency: true },
   });
   if (!user) redirect("/connexion");
+  if (user.role === "ADMIN") redirect("/admin");
 
   const isSeller = sellerRoles.includes(user.role);
 
@@ -101,7 +102,6 @@ export default async function DashboardPage() {
       <main className="min-h-screen bg-sand px-4 py-8 text-ink sm:px-6 sm:py-12">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           <Sidebar isSeller={false} />
-
           <div>
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -175,7 +175,6 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-sand px-4 py-8 text-ink sm:px-6 sm:py-12">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
         <Sidebar isSeller />
-
         <div>
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
