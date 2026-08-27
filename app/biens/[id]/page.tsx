@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { InquiryForm } from "@/components/InquiryForm";
 import { BookingForm } from "@/components/BookingForm";
+import { PropertyAmenities } from "@/components/PropertyAmenities";
 
 export const dynamic = "force-dynamic";
 
@@ -154,6 +155,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
             <div className="mt-7 flex flex-wrap gap-3">{property.bedrooms !== null && <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold"><BedDouble size={17}/>{property.bedrooms} ch.</span>}{property.bathrooms !== null && <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold"><Bath size={17}/>{property.bathrooms} sdb</span>}{property.areaSqm !== null && <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold"><Maximize size={17}/>{property.areaSqm} m²</span>}{property.parkingSpaces !== null && <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold"><ParkingCircle size={17}/>{property.parkingSpaces} parking</span>}{isShortTerm && property.maxGuests && <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold"><Users size={17}/>{property.maxGuests} voyageurs</span>}</div>
             {isShortTerm && <div className="mt-6 rounded-[1.5rem] bg-white p-5 shadow-soft"><h2 className="font-extrabold">Informations du séjour</h2><div className="mt-3 grid gap-2 text-sm text-ink/60 sm:grid-cols-2"><span>Minimum : {property.minNights || 1} nuit(s)</span><span className="flex items-center gap-2"><Clock3 size={15}/> Arrivée {property.checkInTime || "à confirmer"}</span><span>Départ {property.checkOutTime || "à confirmer"}</span>{property.weeklyPrice && <span>Semaine : {Number(property.weeklyPrice.toString()).toLocaleString("fr-FR")} FCFA</span>}</div></div>}
             <div className="mt-10 rounded-[2rem] bg-white p-7 shadow-soft"><h2 className="text-2xl font-extrabold">Description</h2><p className="mt-4 whitespace-pre-line leading-8 text-ink/65">{property.description}</p></div>
+            <PropertyAmenities amenities={property.amenities}/>
           </section>
 
           <aside className="h-fit rounded-[2rem] bg-ink p-7 text-white shadow-soft">
