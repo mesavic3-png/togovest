@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+export const amenityValues = [
+  "POOL",
+  "AIR_CONDITIONING",
+  "GARAGE",
+  "GARDEN",
+  "BALCONY",
+  "ELEVATOR",
+  "SECURITY",
+  "WIFI",
+  "FURNISHED",
+  "RUNNING_WATER",
+  "GENERATOR",
+  "PARKING",
+] as const;
+
 export const propertySchema = z.object({
   title: z.string().min(5, "Le titre doit contenir au moins 5 caractères."),
   description: z.string().min(20, "La description doit contenir au moins 20 caractères."),
@@ -24,6 +39,7 @@ export const propertySchema = z.object({
   landAreaSqm: z.coerce.number().positive().optional(),
   parkingSpaces: z.coerce.number().int().nonnegative().optional(),
   furnished: z.coerce.boolean().default(false),
+  amenities: z.array(z.enum(amenityValues)).max(12).default([]),
   imageUrls: z.array(z.string().url()).max(12).default([]),
 }).superRefine((data, ctx) => {
   if (data.transactionType === "SHORT_TERM") {
