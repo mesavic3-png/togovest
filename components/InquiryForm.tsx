@@ -1,20 +1,16 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
-export function InquiryForm({ propertyId }: { propertyId: string }) {
+type InquiryFormProps = {
+  propertyId: string;
+  phone?: string | null;
+  title?: string;
+};
+
+export function InquiryForm({ propertyId, phone = null, title = "ce bien" }: InquiryFormProps) {
   const [status, setStatus] = useState<"idle"|"sending"|"sent"|"error">("idle");
   const [emailSent, setEmailSent] = useState<boolean | null>(null);
-  const [contact, setContact] = useState<{ phone: string | null; title: string } | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    fetch(`/api/properties/${propertyId}/contact`)
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (active && data) setContact(data); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [propertyId]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,9 +36,8 @@ export function InquiryForm({ propertyId }: { propertyId: string }) {
     }
   }
 
-  const phone = contact?.phone || null;
   const whatsappPhone = phone?.replace(/\D/g, "") || "";
-  const whatsappMessage = encodeURIComponent(`Bonjour, je vous contacte depuis TOGOVEST au sujet de l’annonce « ${contact?.title || "ce bien"} ».`);
+  const whatsappMessage = encodeURIComponent(`Bonjour, je vous contacte depuis TOGOVEST au sujet de l’annonce « ${title} ».`);
 
   return <div className="mt-6 space-y-4">
     {phone && <div className="grid gap-3 sm:grid-cols-2">
