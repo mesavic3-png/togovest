@@ -21,6 +21,15 @@ async function sendEmail(to: string, subject: string, html: string) {
   return response.ok;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function emailLayout(title: string, message: string, action: string, url: string, expiry: string) {
   return `
     <div style="background:#f4f1e8;padding:32px;font-family:Arial,sans-serif;color:#17332d">
@@ -61,5 +70,45 @@ export function sendPasswordResetEmail(email: string, token: string) {
       url,
       "1 heure",
     ),
+  );
+}
+
+export function sendInquiryNotificationEmail({
+  to,
+  propertyId,
+  propertyTitle,
+  senderName,
+  senderEmail,
+  senderPhone,
+  message,
+}: {
+  to: string;
+  propertyId: string;
+  propertyTitle: string;
+  senderName?: string | null;
+  senderEmail?: string | null;
+  senderPhone?: string | null;
+  message: string;
+}) {
+  const url = `${appUrl()}/biens/${encodeURIComponent(propertyId)}`;
+  const safeTitle = escapeHtml(propertyTitle);
+  const safeName = escapeHtml(senderName || "Visiteur TOGOVEST");
+  const safeEmail = senderEmail ? escapeHtml(senderEmail) : "Non fourni";
+  const safePhone = senderPhone ? escapeHtml(senderPhone) : "Non fourni";
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+
+  return sendEmail(
+    to,
+    `Nouvelle demande pour ${propertyTitle}`,
+    `<div style="background:#f4f1e8;padding:32px;font-family:Arial,sans-serif;color:#17332d">
+      <div style="max-width:620px;margin:auto;background:#fff;border-radius:24px;padding:32px">
+        <strong style="font-size:20px">TOGOVEST.</strong>
+        <h1 style="font-size:26px;margin:28px 0 12px">Nouvelle demande sur votre annonce</h1>
+        <p style="line-height:1.65;color:#52645f"><strong>Bien :</strong> ${safeTitle}</p>
+        <p style="line-height:1.65;color:#52645f"><strong>Nom :</strong> ${safeName}<br/><strong>Email :</strong> ${safeEmail}<br/><strong>Téléphone :</strong> ${safePhone}</p>
+        <div style="margin:20px 0;padding:18px;border-radius:16px;background:#f4f1e8;line-height:1.65">${safeMessage}</div>
+        <a href="${url}" style="display:inline-block;background:#173f35;color:#fff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:bold">Voir l’annonce</a>
+      </div>
+    </div>`,
   );
 }
