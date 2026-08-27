@@ -2,23 +2,33 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/phone";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/connexion" },
   providers: [
     CredentialsProvider({
-      name: "Email et mot de passe",
+      name: "Email ou téléphone et mot de passe",
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Email ou téléphone", type: "text" },
         password: { label: "Mot de passe", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: credentials.email.toLowerCase() } });
-        if (!user?.passwordHash || !user.isActive || !user.emailVerifiedAt) return null;
+        const identifier = credentials?.identifier?.trim();
+        if (!identifier || !credentials?.password) return null;
+
+        const isEmail = identifier.includes("@");
+        const user = isEmail
+          ? await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } })
+          : await prisma.user.findUnique({ where: { phone: normalizePhone(identifier) } });
+
+        if (!user?.passwordHash || !user.isActive) return null;
+        if (user.email && !user.emailVerifiedAt) return null;
+
         const valid = await compare(credentials.password, user.passwordHash);
         if (!valid) return null;
+
         return { id: user.id, name: user.name, email: user.email, role: user.role } as any;
       },
     }),

@@ -104,10 +104,10 @@ enum AuthTokenType {
 model User {
   id String @id @default(cuid())
   name String
-  email String @unique
+  email String? @unique
   passwordHash String?
   emailVerifiedAt DateTime? @default(now())
-  phone String?
+  phone String? @unique
   role UserRole @default(USER)
   isActive Boolean @default(true)
   agencyId String?
