@@ -4,7 +4,8 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 
-const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const imageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const videoTypes = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -14,9 +15,12 @@ export async function POST(request: Request) {
   const fileName = String(body.fileName || "");
   const contentType = String(body.contentType || "");
   const fileSize = Number(body.fileSize || 0);
+  const isImage = imageTypes.has(contentType);
+  const isVideo = videoTypes.has(contentType);
+  const maxSize = isVideo ? 80 * 1024 * 1024 : 10 * 1024 * 1024;
 
-  if (!fileName || !allowedTypes.has(contentType) || fileSize <= 0 || fileSize > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: "Fichier invalide. JPG, PNG ou WebP, 10 Mo maximum." }, { status: 400 });
+  if (!fileName || (!isImage && !isVideo) || fileSize <= 0 || fileSize > maxSize) {
+    return NextResponse.json({ error: "Fichier invalide. Images JPG/PNG/WebP (10 Mo max) ou vidéo MP4/WebM/MOV (80 Mo max)." }, { status: 400 });
   }
 
   const endpoint = process.env.S3_ENDPOINT;
@@ -26,8 +30,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Stockage média non configuré" }, { status: 500 });
   }
 
-  const ext = fileName.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-  const key = `properties/${(session.user as any).id}/${crypto.randomUUID()}.${ext.toLowerCase()}`;
+  const ext = fileName.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || (isVideo ? "mp4" : "jpg");
+  const folder = isVideo ? "property-videos" : "properties";
+  const key = `${folder}/${(session.user as any).id}/${crypto.randomUUID()}.${ext.toLowerCase()}`;
   const client = new S3Client({
     region: process.env.S3_REGION || "auto",
     endpoint,
@@ -44,5 +49,5 @@ export async function POST(request: Request) {
     { expiresIn: 300 },
   );
 
-  return NextResponse.json({ uploadUrl, publicUrl: `${publicBaseUrl.replace(/\/$/, "")}/${key}` });
+  return NextResponse.json({ uploadUrl, publicUrl: `${publicBaseUrl.replace(/\/$/, "")}/${key}`, mediaType: isVideo ? "video" : "image" });
 }

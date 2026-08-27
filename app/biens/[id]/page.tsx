@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ArrowLeft, Bath, BedDouble, Clock3, MapPin, Maximize, ParkingCircle, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Bath, BedDouble, Clock3, MapPin, Maximize, ParkingCircle, Sparkles, Users, Video } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -10,6 +10,7 @@ import { InquiryForm } from "@/components/InquiryForm";
 import { BookingForm } from "@/components/BookingForm";
 
 export const dynamic = "force-dynamic";
+const VIDEO_ALT = "__PROPERTY_VIDEO__";
 
 function formatPrice(value: { toString(): string }, transaction: string) {
   const amount = Number(value.toString()).toLocaleString("fr-FR");
@@ -57,6 +58,8 @@ function sortRecommendations(current: any, candidates: any[]) {
     .map(({ candidate }) => candidate);
 }
 
+const recommendationImages = { where: { NOT: { alt: VIDEO_ALT } }, orderBy: { sortOrder: "asc" as const }, take: 1 };
+
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id as string | undefined;
@@ -74,14 +77,12 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   const isFavorite = userId ? (property as any).favorites?.length > 0 : false;
   const isShortTerm = property.transactionType === "SHORT_TERM";
   const contactPhone = property.agency?.phone || property.owner.phone || null;
+  const propertyVideo = property.images.find((media) => media.alt === VIDEO_ALT) || null;
+  const photos = property.images.filter((media) => media.alt !== VIDEO_ALT);
 
   const strictCandidates = await prisma.property.findMany({
-    where: {
-      id: { not: property.id },
-      status: "PUBLISHED",
-      transactionType: property.transactionType,
-    },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+    where: { id: { not: property.id }, status: "PUBLISHED", transactionType: property.transactionType },
+    include: { images: recommendationImages },
     orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     take: 24,
   });
@@ -91,12 +92,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   if (recommendations.length < 3) {
     const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
     const sameCityCandidates = await prisma.property.findMany({
-      where: {
-        id: { notIn: Array.from(existingIds) },
-        status: "PUBLISHED",
-        city: { equals: property.city, mode: "insensitive" },
-      },
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      where: { id: { notIn: Array.from(existingIds) }, status: "PUBLISHED", city: { equals: property.city, mode: "insensitive" } },
+      include: { images: recommendationImages },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 18,
     });
@@ -106,12 +103,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   if (recommendations.length < 3) {
     const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
     const sameTypeCandidates = await prisma.property.findMany({
-      where: {
-        id: { notIn: Array.from(existingIds) },
-        status: "PUBLISHED",
-        type: property.type,
-      },
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      where: { id: { notIn: Array.from(existingIds) }, status: "PUBLISHED", type: property.type },
+      include: { images: recommendationImages },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 18,
     });
@@ -121,11 +114,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   if (recommendations.length < 3) {
     const existingIds = new Set([property.id, ...recommendations.map((item) => item.id)]);
     const fallbackCandidates = await prisma.property.findMany({
-      where: {
-        id: { notIn: Array.from(existingIds) },
-        status: "PUBLISHED",
-      },
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      where: { id: { notIn: Array.from(existingIds) }, status: "PUBLISHED" },
+      include: { images: recommendationImages },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 18,
     });
@@ -141,10 +131,15 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
         </div>
         <div className="grid gap-3 lg:grid-cols-[1.6fr_.8fr]">
           <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-ink/5 sm:min-h-[560px]">
-            {property.images[0] ? <Image src={property.images[0].url} alt={property.images[0].alt || property.title} fill priority className="object-cover"/> : <div className="grid h-full min-h-[420px] place-items-center text-ink/35">Photo à venir</div>}
+            {photos[0] ? <Image src={photos[0].url} alt={photos[0].alt || property.title} fill priority className="object-cover"/> : <div className="grid h-full min-h-[420px] place-items-center text-ink/35">Photo à venir</div>}
           </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">{property.images.slice(1, 3).map((image) => <div key={image.id} className="relative min-h-48 overflow-hidden rounded-[1.5rem] bg-ink/5"><Image src={image.url} alt={image.alt || property.title} fill className="object-cover"/></div>)}</div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">{photos.slice(1, 3).map((image) => <div key={image.id} className="relative min-h-48 overflow-hidden rounded-[1.5rem] bg-ink/5"><Image src={image.url} alt={image.alt || property.title} fill className="object-cover"/></div>)}</div>
         </div>
+
+        {propertyVideo && <section className="mt-6 overflow-hidden rounded-[2rem] bg-ink p-4 shadow-soft sm:p-6">
+          <div className="mb-4 flex items-center gap-2 font-extrabold text-white"><Video size={20} className="text-lime"/> Visite vidéo</div>
+          <video src={propertyVideo.url} controls preload="metadata" className="aspect-video w-full rounded-[1.25rem] bg-black object-contain" />
+        </section>}
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.5fr_.7fr]">
           <section>

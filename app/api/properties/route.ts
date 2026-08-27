@@ -32,6 +32,10 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const slug = `${slugify(data.title)}-${Date.now().toString(36)}`;
     const isShortTerm = data.transactionType === "SHORT_TERM";
+    const media = [
+      ...data.imageUrls.map((url, index) => ({ url, sortOrder: index, alt: null as string | null })),
+      ...(data.videoUrl ? [{ url: data.videoUrl, sortOrder: 999, alt: "__PROPERTY_VIDEO__" }] : []),
+    ];
 
     const property = await prisma.property.create({
       data: {
@@ -63,7 +67,7 @@ export async function POST(request: Request) {
         amenities: data.amenities,
         ownerId: user.id,
         agencyId: user.agencyId || null,
-        images: { create: data.imageUrls.map((url, index) => ({ url, sortOrder: index })) },
+        images: { create: media },
       },
       include: { images: true },
     });
