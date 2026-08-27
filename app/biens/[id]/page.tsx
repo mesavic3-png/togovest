@@ -73,6 +73,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   if (!property) notFound();
   const isFavorite = userId ? (property as any).favorites?.length > 0 : false;
   const isShortTerm = property.transactionType === "SHORT_TERM";
+  const contactPhone = property.agency?.phone || property.owner.phone || null;
 
   const strictCandidates = await prisma.property.findMany({
     where: {
@@ -162,7 +163,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               <p className="mt-2 text-sm text-white/60">Choisissez vos dates. Les réservations en attente ou confirmées bloquent automatiquement les dates qui se chevauchent.</p>
               <BookingForm propertyId={property.id} nightlyPrice={Number(property.nightlyPrice.toString())} cleaningFee={property.cleaningFee ? Number(property.cleaningFee.toString()) : 0} minNights={property.minNights || 1} maxGuests={property.maxGuests || 1}/>
             </> : <>
-              <p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p><h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2><p className="mt-3 text-sm text-white/60">Demandez une visite ou plus d’informations. Votre demande sera enregistrée dans l’espace de l’annonceur.</p>{property.owner.phone && <a href={`tel:${property.owner.phone}`} className="mt-5 block rounded-full border border-white/20 px-5 py-3 text-center font-bold">Appeler {property.owner.phone}</a>}<InquiryForm propertyId={property.id}/>
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-lime">Contacter l’annonceur</p><h2 className="mt-3 text-2xl font-extrabold">{property.agency?.name || property.owner.name}</h2><p className="mt-3 text-sm text-white/60">Demandez une visite ou plus d’informations. Votre demande sera enregistrée dans l’espace de l’annonceur.</p><InquiryForm propertyId={property.id} phone={contactPhone} title={property.title}/>
             </>}
           </aside>
         </div>
