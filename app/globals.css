@@ -1,5 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root{color:#10281f;background:#fbfaf6}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:var(--font-body),sans-serif;background:#fbfaf6;color:#10281f}h1,h2,h3{font-family:var(--font-display),sans-serif}::selection{background:#d8f05e;color:#10281f}
-@layer components{.shell{@apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10}.eyebrow{@apply text-xs font-bold uppercase tracking-[.22em] text-forest/70}}
+
+:root{color:#10281f;background:#f7f5ef}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font-body),sans-serif;background:linear-gradient(180deg,#fbfaf6 0%,#f7f5ef 100%);color:#10281f;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-display),sans-serif;letter-spacing:-.035em}
+a,button{transition:all .2s ease}
+::selection{background:#d8f05e;color:#10281f}
+
+@layer components{
+  .shell{@apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10}
+  .eyebrow{@apply text-xs font-bold uppercase tracking-[.22em] text-forest/65}
+  .premium-card{@apply rounded-[1.75rem] border border-ink/5 bg-white shadow-[0_16px_60px_rgba(16,40,31,.07)]}
+  .premium-button{@apply inline-flex items-center justify-center rounded-full bg-forest px-6 py-3 font-bold text-white shadow-[0_10px_30px_rgba(16,40,31,.16)] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(16,40,31,.22)]}
+}
